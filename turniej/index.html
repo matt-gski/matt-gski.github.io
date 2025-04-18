@@ -1,0 +1,115 @@
+</html>
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pokój Teleturniejowy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://unpkg.com/vue@2.7.16/dist/vue.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #121212;
+      color: #fff;
+    }
+    .screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    button {
+      background: #00c853;
+      color: #000;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      margin: 0.5rem;
+    }
+    button:disabled {
+      background: #444;
+      color: #999;
+      cursor: not-allowed;
+    }
+    input {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 5px;
+      margin: 0.5rem 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <template v-if="screen === 'start'">
+      <div class="screen">
+        <h1>🎉 Pokój Teleturniejowy</h1>
+        <p>Wybierz quiz, aby rozpocząć</p>
+        <select v-model="selectedQuiz">
+          <option disabled value="">-- Wybierz quiz --</option>
+          <option v-for="quiz in quizzes" :key="quiz.id" :value="quiz.id">{{ quiz.name }}</option>
+        </select>
+        <button :disabled="!selectedQuiz" @click="goToLobby">Start gry</button>
+      </div>
+    </template>
+
+    <template v-else-if="screen === 'lobby'">
+      <div class="screen">
+        <h2>Lobby graczy</h2>
+        <div v-for="(player, index) in players" :key="index">
+          <input v-model="player.name" :placeholder="`Gracz ${ index + 1 }`" />
+        </div>
+        <button @click="addPlayer" v-if="players.length < 6">Dodaj gracza</button>
+        <button :disabled="players.length < 2 || players.some(p => !p.name)" @click="startGame">
+          Rozpocznij rozgrywkę
+        </button>
+      </div>
+    </template>
+
+    <template v-else-if="screen === 'game'">
+      <div class="screen">
+        <h2>Pytanie #{{ currentQuestionIndex + 1 }}</h2>
+        <p>{{ currentQuestion.text }}</p>
+        <div v-for="(opt, key) in currentQuestion.options" :key="key">
+          <button
+            :disabled="selectedAnswer"
+            @click="submitAnswer(key)"
+          >
+            {{ key }}: {{ opt }}
+          </button>
+        </div>
+        <div v-if="selectedAnswer">
+          <p>
+            Wybrano: {{ selectedAnswer }} —
+            <span :style="{ color: selectedAnswer === currentQuestion.answer ? 'lime' : 'red' }">
+              {{ selectedAnswer === currentQuestion.answer ? 'Poprawnie!' : 'Błędna odpowiedź' }}
+            </span>
+          </p>
+          <button @click="nextQuestion">Dalej</button>
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="screen === 'summary'">
+      <div class="screen">
+        <h2>📊 Podsumowanie gry</h2>
+        <ol>
+          <li v-for="player in players" :key="player.name">
+            {{ player.name }} — {{ results[player.name] || 0 }} pkt
+          </li>
+        </ol>
+        <button @click="restartGame">Zagraj ponownie</button>
+      </div>
+    </template>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
